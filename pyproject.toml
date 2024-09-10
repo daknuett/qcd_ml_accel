@@ -1,0 +1,21 @@
+[project]
+name="qcd_ml"
+authors = [
+    {name="Daniel Knüttel", email="daniel.knuettel@physik.uni-regensburg.de"}
+]
+description = "C++ accelerator code for qcd_ml"
+requires-python=">=3.4"
+readme="README.rst"
+dependencies=['torch']
+
+version="0.0.1"
+
+[project.urls]
+repository="https://github.com/daknuett/qcd_ml_accel"
+homepage="https://github.com/daknuett/qcd_ml_accel"
+
+[build-system]
+requires = ["meson-python", "ninja", "torch"]
+build-backend = 'mesonpy'
+
+
