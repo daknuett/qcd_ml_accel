@@ -12,6 +12,8 @@ python = pymod.find_installation('python3')
 pydep = python.dependency()
 
 
+#--------------------------------------------------------------------------------#
+# Headers and shared objects from torch                                          #
 # Obtain include and library paths from torch installation.
 torch_include_dirs = []
 foreach tin: run_command(python, ['-c', 'import torch.utils.cpp_extension; print("\\n".join(torch.utils.cpp_extension.include_paths()))'], check: true).stdout().split('\n')
@@ -40,6 +42,9 @@ foreach libname: needed_by_torch
   torch_deps += CXX.find_library(libname, dirs: torch_ld_paths)
 endforeach
 
+#--------------------------------------------------------------------------------#
+# PYBIND11 related configs                                                       #
+
 pybind11_attrs = ['PYBIND11_BUILD_ABI', 'PYBIND11_COMPILER_TYPE', 'PYBIND11_STDLIB']
 pybind11_attr_vals = []
 
@@ -54,11 +59,20 @@ foreach i: range(3)
   endif
 endforeach
 
+#--------------------------------------------------------------------------------#
+# Defines that are required for torch compatibility                              #
+
+# ABI compatibility
+cxx11abi = run_command(python, ['-c', 'import torch; print(torch._C._GLIBCXX_USE_CXX11_ABI)'], check: true).stdout().strip()
+add_global_arguments('-D_GLIBCXX_USE_CXX11_ABI=@0@'.format(cxx11abi), language: 'cpp')
+
+
 
 python.extension_module(
-    'extension_test'
-    , ['src/qcd_ml_accel/test.cpp']
+    '_C'
+    , ['src/qcd_ml_accel/pool4d.cpp']
     , dependencies: torch_deps
     , install:true
     , subdir: 'qcd_ml_accel'
+    , cpp_args: ['-DTORCH_EXTENSION_NAME=_C']
     , include_directories: torch_includes)
