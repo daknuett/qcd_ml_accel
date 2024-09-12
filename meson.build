@@ -76,3 +76,8 @@ python.extension_module(
     , subdir: 'qcd_ml_accel'
     , cpp_args: ['-DTORCH_EXTENSION_NAME=_C']
     , include_directories: torch_includes)
+
+
+python.install_sources('src/qcd_ml_accel/__init__.py', 'src/qcd_ml_accel/pool4d.py'
+  , pure:false
+  , subdir: 'qcd_ml_accel')

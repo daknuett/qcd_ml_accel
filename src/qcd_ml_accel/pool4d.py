@@ -13,7 +13,7 @@ def v_pool4d(v_spincolor_field: Tensor, block_size: Tensor) -> Tensor:
     where each element of the output is the sum of the elements in the
     corresponding block of the input.
     """
-    return torch.ops.qcd_ml_accel.v_pool4d(v_spincolor_field, block_size)
+    return torch.ops.qcd_ml_accel.v_pool4d.default(v_spincolor_field, block_size)
 
 @torch.library.register_fake("qcd_ml_accel::v_pool4d")
 def _(v_spincolor_field, block_size):

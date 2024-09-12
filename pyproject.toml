@@ -1,5 +1,5 @@
 [project]
-name="qcd_ml"
+name="qcd_ml_accel"
 authors = [
     {name="Daniel Knüttel", email="daniel.knuettel@physik.uni-regensburg.de"}
 ]
