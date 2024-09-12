@@ -38,21 +38,37 @@ namespace qcd_ml_accel {
         c10::complex<double> * const result_ptr = result.data_ptr<c10::complex<double>>();
 
 
-        uint64_t const stride_x = L_coarse[1] 
+        uint64_t const stride_x_c = L_coarse[1] 
                                 * L_coarse[2]
                                 * L_coarse[3]
                                 * L_coarse[4]
                                 * L_coarse[5];
-        uint64_t const stride_y = L_coarse[2]
+        uint64_t const stride_y_c = L_coarse[2]
                                 * L_coarse[3]
                                 * L_coarse[4]
                                 * L_coarse[5];
-        uint64_t const stride_z = L_coarse[3]
+        uint64_t const stride_z_c = L_coarse[3]
                                 * L_coarse[4]
                                 * L_coarse[5];
-        uint64_t const stride_t = L_coarse[4]
+        uint64_t const stride_t_c = L_coarse[4]
                                 * L_coarse[5];
-        uint64_t const stride_s = L_coarse[5];
+        uint64_t const stride_s_c = L_coarse[5];
+
+        uint64_t const stride_x = vsfield_contig.sizes()[1] 
+                                * vsfield_contig.sizes()[2]
+                                * vsfield_contig.sizes()[3]
+                                * vsfield_contig.sizes()[4]
+                                * vsfield_contig.sizes()[5];
+        uint64_t const stride_y = vsfield_contig.sizes()[2]
+                                * vsfield_contig.sizes()[3]
+                                * vsfield_contig.sizes()[4]
+                                * vsfield_contig.sizes()[5];
+        uint64_t const stride_z = vsfield_contig.sizes()[3]
+                                * vsfield_contig.sizes()[4]
+                                * vsfield_contig.sizes()[5];
+        uint64_t const stride_t = vsfield_contig.sizes()[4]
+                                * vsfield_contig.sizes()[5];
+        uint64_t const stride_s = vsfield_contig.sizes()[5];
 
         /* Loop over coarse grid */
         // #pragma omp parallel for
@@ -80,15 +96,15 @@ namespace qcd_ml_accel {
                                         {
                                             for(int64_t ci = 0; ci < L_coarse[5]; ci ++)
                                             {
-                                                result_ptr[xc * stride_x
-                                                        + yc * stride_y
-                                                        + zc * stride_z
-                                                        + tc * stride_t
-                                                        + si * stride_s
-                                                        + ci] += vsfield_ptr[(xc + xi) * stride_x * blk_sz_ptr[0]
-                                                                            + (yc + yi) * stride_x * blk_sz_ptr[1]
-                                                                            + (zc + zi) * stride_x * blk_sz_ptr[2]
-                                                                            + (tc + ti) * stride_x * blk_sz_ptr[3]
+                                                result_ptr[xc * stride_x_c
+                                                        + yc * stride_y_c
+                                                        + zc * stride_z_c
+                                                        + tc * stride_t_c
+                                                        + si * stride_s_c
+                                                        + ci] += vsfield_ptr[(xc * blk_sz_ptr[0] + xi) * stride_x
+                                                                            + (yc * blk_sz_ptr[1] + yi) * stride_y
+                                                                            + (zc * blk_sz_ptr[2] + zi) * stride_z
+                                                                            + (tc * blk_sz_ptr[3] + ti) * stride_t
                                                                             + si * stride_s
                                                                             + ci];
 
@@ -116,7 +132,7 @@ namespace qcd_ml_accel {
 
         at::Tensor block_size_contig = block_size.contiguous();
         TORCH_CHECK(v_spincolor_field.sizes().size() == 6);     // 4d + spin + color
-        TORCH_CHECK(block_size_contig.sizes() == 1);            // This is list of block sizes
+        TORCH_CHECK(block_size_contig.sizes() == at::ArrayRef({(long) 4}));            // This is list of block sizes
         TORCH_CHECK(block_size_contig.sizes()[0] == 4);
 
         const uint64_t * const blk_sz_ptr = block_size_contig.data_ptr<uint64_t>();
@@ -135,23 +151,41 @@ namespace qcd_ml_accel {
         const c10::complex<double> * const vsfield_ptr = vsfield_contig.data_ptr<c10::complex<double>>();
         c10::complex<double> * const result_ptr = result.data_ptr<c10::complex<double>>();
 
-        int64_t const stride_x = vsfield_contig.sizes()[1] 
+        int64_t const stride_x_c = vsfield_contig.sizes()[1] 
                                 * vsfield_contig.sizes()[2]
                                 * vsfield_contig.sizes()[3]
                                 * vsfield_contig.sizes()[4]
                                 * vsfield_contig.sizes()[5];
         
-        int64_t const stride_y = vsfield_contig.sizes()[2]
+        int64_t const stride_y_c = vsfield_contig.sizes()[2]
                                 * vsfield_contig.sizes()[3]
                                 * vsfield_contig.sizes()[4]
                                 * vsfield_contig.sizes()[5];
 
-        int64_t const stride_z = vsfield_contig.sizes()[3]
+        int64_t const stride_z_c = vsfield_contig.sizes()[3]
                                 * vsfield_contig.sizes()[4]
                                 * vsfield_contig.sizes()[5];
-        int64_t const stride_t = vsfield_contig.sizes()[4]
+        int64_t const stride_t_c = vsfield_contig.sizes()[4]
                                 * vsfield_contig.sizes()[5];
-        int64_t const stride_s = vsfield_contig.sizes()[5];
+        int64_t const stride_s_c = vsfield_contig.sizes()[5];
+
+        int64_t const stride_x = L_fine[1] 
+                                * L_fine[2]
+                                * L_fine[3]
+                                * L_fine[4]
+                                * L_fine[5];
+        
+        int64_t const stride_y = L_fine[2]
+                                * L_fine[3]
+                                * L_fine[4]
+                                * L_fine[5];
+
+        int64_t const stride_z = L_fine[3]
+                                * L_fine[4]
+                                * L_fine[5];
+        int64_t const stride_t = L_fine[4]
+                                * L_fine[5];
+        int64_t const stride_s = L_fine[5];
 
         for(int64_t xc = 0; xc < vsfield_contig.sizes()[0]; xc++)
         {
@@ -174,16 +208,16 @@ namespace qcd_ml_accel {
                                         {
                                             for(int64_t ti = 0; ti < blk_sz_ptr[3]; ti++)
                                             {
-                                                result_ptr[(xc + xi) * stride_x * blk_sz_ptr[0]
-                                                        + (yc + yi) * stride_x * blk_sz_ptr[1]
-                                                        + (zc + zi) * stride_x * blk_sz_ptr[2]
-                                                        + (tc + ti) * stride_x * blk_sz_ptr[3]
+                                                result_ptr[(xc * blk_sz_ptr[0] + xi) * stride_x
+                                                        + (yc * blk_sz_ptr[1] + yi) * stride_y
+                                                        + (zc * blk_sz_ptr[2] + zi) * stride_z
+                                                        + (tc * blk_sz_ptr[3] + ti) * stride_t
                                                         + si * stride_s
-                                                        + ci] = vsfield_ptr[xc * stride_x
-                                                                            + yc * stride_y
-                                                                            + zc * stride_z
-                                                                            + tc * stride_t
-                                                                            + si * stride_s
+                                                        + ci] = vsfield_ptr[xc * stride_x_c
+                                                                            + yc * stride_y_c
+                                                                            + zc * stride_z_c
+                                                                            + tc * stride_t_c
+                                                                            + si * stride_s_c
                                                                             + ci];
                                             }
                                         }
