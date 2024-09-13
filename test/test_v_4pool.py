@@ -27,7 +27,7 @@ def test_v_pool4d():
     block_size = [4, 4, 4, 4]
     coarse_v = pool(fine_v, L_coarse, block_size)
 
-    pooled = qcd_ml_accel.pool4d.v_pool4d(fine_v, torch.tensor(block_size, dtype=torch.uint64));
+    pooled = qcd_ml_accel.pool4d.v_pool4d(fine_v, torch.tensor(block_size, dtype=torch.int64));
 
     assert torch.allclose(coarse_v, pooled)
 
@@ -40,6 +40,6 @@ def test_v_unpool4d():
 
     new_fine_v = unpool(coarse_v, L_coarse, block_size)
 
-    unpooled = qcd_ml_accel.pool4d.v_unpool4d(coarse_v, torch.tensor(block_size, dtype=torch.uint64));
+    unpooled = qcd_ml_accel.pool4d.v_unpool4d(coarse_v, torch.tensor(block_size, dtype=torch.int64));
 
     assert torch.allclose(new_fine_v, unpooled)

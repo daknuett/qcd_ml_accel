@@ -7,22 +7,22 @@ namespace qcd_ml_accel {
     at::Tensor v_pool4d_cpu(at::Tensor v_spincolor_field, at::Tensor block_size)
     {
         TORCH_CHECK(v_spincolor_field.dtype() == at::kComplexDouble);
-        TORCH_CHECK(block_size.dtype() == at::kUInt64);
+        TORCH_CHECK(block_size.dtype() == at::kLong);
 
         at::Tensor block_size_contig = block_size.contiguous();
         TORCH_CHECK(v_spincolor_field.sizes().size() == 6);     // 4d + spin + color
         TORCH_CHECK(block_size_contig.sizes() == at::ArrayRef({(long)4}));            // This is list of block sizes
         TORCH_CHECK(block_size_contig.sizes()[0] == 4);
 
-        const uint64_t * const blk_sz_ptr = block_size_contig.data_ptr<uint64_t>();
+        const int64_t * const blk_sz_ptr = block_size_contig.data_ptr<int64_t>();
 
-        for(uint64_t mu = 0; mu < block_size_contig.sizes()[0]; mu++)
+        for(int64_t mu = 0; mu < block_size_contig.sizes()[0]; mu++)
         {
             TORCH_CHECK(v_spincolor_field.sizes()[mu] % blk_sz_ptr[mu] == 0); // make sure partition works.
         }
 
         std::vector<int64_t> L_coarse;
-        for(uint64_t mu = 0; mu < block_size_contig.sizes()[0]; mu++)
+        for(int64_t mu = 0; mu < block_size_contig.sizes()[0]; mu++)
         {
             L_coarse.push_back(v_spincolor_field.sizes()[mu] / blk_sz_ptr[mu]);  // compute coarse grid size
         }
@@ -38,37 +38,37 @@ namespace qcd_ml_accel {
         c10::complex<double> * const result_ptr = result.data_ptr<c10::complex<double>>();
 
 
-        uint64_t const stride_x_c = L_coarse[1] 
+        int64_t const stride_x_c = L_coarse[1] 
                                 * L_coarse[2]
                                 * L_coarse[3]
                                 * L_coarse[4]
                                 * L_coarse[5];
-        uint64_t const stride_y_c = L_coarse[2]
+        int64_t const stride_y_c = L_coarse[2]
                                 * L_coarse[3]
                                 * L_coarse[4]
                                 * L_coarse[5];
-        uint64_t const stride_z_c = L_coarse[3]
+        int64_t const stride_z_c = L_coarse[3]
                                 * L_coarse[4]
                                 * L_coarse[5];
-        uint64_t const stride_t_c = L_coarse[4]
+        int64_t const stride_t_c = L_coarse[4]
                                 * L_coarse[5];
-        uint64_t const stride_s_c = L_coarse[5];
+        int64_t const stride_s_c = L_coarse[5];
 
-        uint64_t const stride_x = vsfield_contig.sizes()[1] 
+        int64_t const stride_x = vsfield_contig.sizes()[1] 
                                 * vsfield_contig.sizes()[2]
                                 * vsfield_contig.sizes()[3]
                                 * vsfield_contig.sizes()[4]
                                 * vsfield_contig.sizes()[5];
-        uint64_t const stride_y = vsfield_contig.sizes()[2]
+        int64_t const stride_y = vsfield_contig.sizes()[2]
                                 * vsfield_contig.sizes()[3]
                                 * vsfield_contig.sizes()[4]
                                 * vsfield_contig.sizes()[5];
-        uint64_t const stride_z = vsfield_contig.sizes()[3]
+        int64_t const stride_z = vsfield_contig.sizes()[3]
                                 * vsfield_contig.sizes()[4]
                                 * vsfield_contig.sizes()[5];
-        uint64_t const stride_t = vsfield_contig.sizes()[4]
+        int64_t const stride_t = vsfield_contig.sizes()[4]
                                 * vsfield_contig.sizes()[5];
-        uint64_t const stride_s = vsfield_contig.sizes()[5];
+        int64_t const stride_s = vsfield_contig.sizes()[5];
 
         /* Loop over coarse grid */
         // #pragma omp parallel for
@@ -128,17 +128,17 @@ namespace qcd_ml_accel {
     at::Tensor v_unpool4d_cpu(at::Tensor v_spincolor_field, at::Tensor block_size)
     {
         TORCH_CHECK(v_spincolor_field.dtype() == at::kComplexDouble);
-        TORCH_CHECK(block_size.dtype() == at::kUInt64);
+        TORCH_CHECK(block_size.dtype() == at::kLong);
 
         at::Tensor block_size_contig = block_size.contiguous();
         TORCH_CHECK(v_spincolor_field.sizes().size() == 6);     // 4d + spin + color
         TORCH_CHECK(block_size_contig.sizes() == at::ArrayRef({(long) 4}));            // This is list of block sizes
         TORCH_CHECK(block_size_contig.sizes()[0] == 4);
 
-        const uint64_t * const blk_sz_ptr = block_size_contig.data_ptr<uint64_t>();
+        const int64_t * const blk_sz_ptr = block_size_contig.data_ptr<int64_t>();
 
         std::vector<int64_t> L_fine;
-        for(uint64_t mu = 0; mu < block_size_contig.sizes()[0]; mu++)
+        for(int64_t mu = 0; mu < block_size_contig.sizes()[0]; mu++)
         {
             L_fine.push_back(v_spincolor_field.sizes()[mu] * blk_sz_ptr[mu]);  // compute coarse grid size
         }
