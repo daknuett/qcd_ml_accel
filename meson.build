@@ -11,6 +11,7 @@ pymod = import('python')
 python = pymod.find_installation('python3')
 pydep = python.dependency()
 
+openmp = dependency('openmp')
 
 #--------------------------------------------------------------------------------#
 # Headers and shared objects from torch                                          #
@@ -71,7 +72,7 @@ add_global_arguments('-D_GLIBCXX_USE_CXX11_ABI=@0@'.format(cxx11abi), language: 
 python.extension_module(
     '_C'
     , ['src/qcd_ml_accel/pool4d.cpp']
-    , dependencies: torch_deps
+    , dependencies: torch_deps + openmp
     , install:true
     , subdir: 'qcd_ml_accel'
     , cpp_args: ['-DTORCH_EXTENSION_NAME=_C']

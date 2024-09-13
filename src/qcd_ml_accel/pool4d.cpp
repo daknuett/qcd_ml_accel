@@ -1,5 +1,9 @@
 #include <torch/extension.h>
 
+#ifndef _OPENMP
+#define _OPENMP
+#endif
+#include <ATen/ParallelOpenMP.h>
 #include <vector>
 
 namespace qcd_ml_accel {
@@ -71,10 +75,13 @@ namespace qcd_ml_accel {
         int64_t const stride_s = vsfield_contig.sizes()[5];
 
         /* Loop over coarse grid */
-        // #pragma omp parallel for
-        for(uint64_t xc = 0; xc < L_coarse[0]; xc ++)
+        //for(int64_t xc = 0; xc < L_coarse[0]; xc ++)
+        at::parallel_for(0, L_coarse[0], 1, [&](int64_t start, int64_t end){
+        for(int64_t xc = start; xc < end; xc ++)
         {
-            for(int64_t yc = 0; yc < L_coarse[1]; yc ++)
+            //for(int64_t yc = 0; yc < L_coarse[1]; yc ++)
+            at::parallel_for(0, L_coarse[1], 1, [&](int64_t start, int64_t end){
+            for(int64_t yc = start; yc < end; yc ++)
             {
                 for(int64_t zc = 0; zc < L_coarse[2]; zc ++)
                 {
@@ -119,8 +126,8 @@ namespace qcd_ml_accel {
 
                     }
                 }
-            }
-        }
+            }});
+        }});
 
         return result;
     }
@@ -187,9 +194,11 @@ namespace qcd_ml_accel {
                                 * L_fine[5];
         int64_t const stride_s = L_fine[5];
 
-        for(int64_t xc = 0; xc < vsfield_contig.sizes()[0]; xc++)
+        at::parallel_for(0, vsfield_contig.sizes()[0], 1, [&](int64_t start, int64_t end){
+        for(int64_t xc = start; xc < end; xc ++)
         {
-            for(int64_t yc = 0; yc < vsfield_contig.sizes()[1]; yc++)
+            at::parallel_for(0, vsfield_contig.sizes()[1], 1, [&](int64_t start, int64_t end){
+            for(int64_t yc = start; yc < end; yc ++)
             {
                 for(int64_t zc = 0; zc < vsfield_contig.sizes()[2]; zc++)
                 {
@@ -227,8 +236,8 @@ namespace qcd_ml_accel {
                         }
                     }
                 }
-            }
-        }
+            }});
+        }});
 
         return result;
     }
