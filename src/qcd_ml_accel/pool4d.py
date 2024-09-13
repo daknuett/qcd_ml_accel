@@ -40,3 +40,31 @@ def _(v_spincolor_field, block_size):
     torch._check(block_size.dtype == torch.uint64)
     L_fine = [lci * bsi for lci, bsi in zip(v_spincolor_field.shape[:-2], block_size)]
     return torch.empty(*L_fine, *v_spincolor_field.shape[-2:], dtype=torch.cdouble)
+
+
+def _backward_v_pool4d(ctx, grad):
+    v_spincolor_field, block_size = ctx.saved_tensors
+    grad_v_spincolor_field = None
+    if ctx.needs_input_grad[0]:
+        grad_v_spincolor_field = torch.ops.qcd_ml_accel.v_unpool4d.default(grad, block_size)
+    return grad_v_spincolor_field, None
+
+def _setup_context_v_pool4d(ctx, inputs, output):
+    v_spincolor_field, block_size = inputs
+    ctx.save_for_backward(v_spincolor_field, block_size)
+
+torch.library.register_autograd("qcd_ml_accel::v_pool4d", _backward_v_pool4d, setup_context=_setup_context_v_pool4d)
+
+
+def _backward_v_unpool4d(ctx, grad):
+    v_spincolor_field, block_size = ctx.saved_tensors
+    grad_v_spincolor_field = None
+    if ctx.needs_input_grad[0]:
+        grad_v_spincolor_field = torch.ops.qcd_ml_accel.v_pool4d.default(grad, block_size)
+    return grad_v_spincolor_field, None
+
+def _setup_context_v_unpool4d(ctx, inputs, output):
+    v_spincolor_field, block_size = inputs
+    ctx.save_for_backward(v_spincolor_field, block_size)
+
+torch.library.register_autograd("qcd_ml_accel::v_unpool4d", _backward_v_unpool4d, setup_context=_setup_context_v_unpool4d)
