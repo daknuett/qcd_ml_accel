@@ -15,7 +15,8 @@ repository="https://github.com/daknuett/qcd_ml_accel"
 homepage="https://github.com/daknuett/qcd_ml_accel"
 
 [build-system]
-requires = ["meson-python", "ninja", "torch"]
-build-backend = 'mesonpy'
-
-
+requires = [
+    "setuptools",
+    "torch",
+]
+build-backend = "setuptools.build_meta"
