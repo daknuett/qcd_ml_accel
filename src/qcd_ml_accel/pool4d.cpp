@@ -3,6 +3,7 @@
 #ifndef _OPENMP
 #define _OPENMP
 #endif
+#include <omp.h>
 #include <ATen/ParallelOpenMP.h>
 #include <vector>
 
